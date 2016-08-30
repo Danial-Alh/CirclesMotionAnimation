@@ -135,9 +135,9 @@ function draw() {
     drawBordersOfCube();
     var lengthString = parseFloat(Math.round((length*drawingWidth) * 100) / 100).toFixed(2);
     label.html(lengthString + " cm");
-    mesh[turn].updateMatrixWorld();
-    var vector = mesh[turn].geometry.vertices[1].clone();
-    vector.applyMatrix4( mesh[turn].matrixWorld );
+    // mesh[turn].updateMatrixWorld();
+    // var vector = mesh[turn].geometry.vertices[1].clone();
+    // vector.applyMatrix4( mesh[turn].matrixWorld );
     // console.log("left", position.x + "px");
     // console.log("top", position.y + "px");
     renderer.render(scene, camera);
@@ -172,7 +172,7 @@ function updateWidthInfo()
     label = $("#widthInfo");
     length = width;
   }
-  else if(turn == 2)
+  else
   {
     label = $("#heightInfo");
     length = height;
@@ -182,13 +182,13 @@ function updateWidthInfo()
 
 function loopAnimate()
 {
-    setTimeout(
-      function()
-      {
-        requestAnimationFrame(loopAnimate);
-        draw();
-      }, 1000 / 60
-    );
+    // setTimeout(
+    //   function()
+    //   {
+    requestAnimationFrame(loopAnimate);
+    draw();
+      // }, 1000 / 60
+    // );
 }
 
 
@@ -214,8 +214,8 @@ $(function()
   // );
 
   init();
-  loopAnimate();
   updateWidthInfo();
+  loopAnimate();
 
   $(".pos").mousedown(function (event) {dragging = true;});
   $("#bc").mousemove(function (event) {if(dragging) dragFunc(event)});

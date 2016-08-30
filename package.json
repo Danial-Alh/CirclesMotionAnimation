@@ -1,5 +1,9 @@
 {
-  "name"    : "ads",
+  "name"    : "BoxProject",
   "version" : "0.1.0",
-  "main"    : "main.js"
+  "main"    : "main.js",
+  "devDependencies": {
+    "electron": "1.3.4",
+    "devtron": "file:/usr/lib/node_modules/devtron/"
+  }
 }

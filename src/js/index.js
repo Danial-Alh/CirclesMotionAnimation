@@ -6,9 +6,6 @@ $(document).ready(
     $("#shape").draggable({
     drag: function( event, ui )
     {
-      console.log("move");
-      var offset = $(this).offset();
-      $(".pos").stop();
       $(".pos").css("left", event.pageX);
       $(".pos").css("top", event.pageY);
     }});
