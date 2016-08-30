@@ -1,0 +1,35 @@
+.re {
+  fill:rgb(205, 205, 212);
+  stroke-width:3;
+  stroke:rgb(0,0,0);
+  width: 100px;
+  height: 100px;
+}
+
+.pos {
+  position:fixed;
+  width:100px;
+  height:100px;
+  left: 50%;
+  top:50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  overflow: visible;
+}
+
+#bc {
+  position: fixed;
+  left: 0px;
+  top: 0px;
+  width:100%;
+  height:100%;
+  background-color: #7327bf;
+}
+
+#goal {
+  color: rgb(222, 222, 222);
+  position: fixed;
+  left: 50%;
+  top: 95%;
+  transform: translate(-50%, 0);
+}
