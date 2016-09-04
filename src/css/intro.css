@@ -1,5 +1,5 @@
 :root {
-
+  --topButton: 40%;
 }
 
 .info
@@ -18,13 +18,45 @@
 #heightInfo
 {
   top: 60%;
-  left: 70%;
+  left: 60%;
 }
 
 #depthInfo
 {
   top: 40%;
   left: 70%;
+}
+
+#infoSelector
+{
+  position: fixed;
+  top: 0%;
+  left: 0%;
+  width: 40%;
+  height: 100%;
+}
+
+.mySelectors
+{
+  position: absolute;
+  width: inherit;
+  height: 50px;
+  left: 10%;
+}
+
+#widthSelector
+{
+  top: var(--topButton);
+}
+
+#heightSelector
+{
+  top: calc(var(--topButton) + 10%);
+}
+
+#depthSelector
+{
+  top: calc(var(--topButton) + 20%);
 }
 
 #homeCanves

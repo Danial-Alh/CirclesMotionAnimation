@@ -32,8 +32,6 @@ function init() {
 	document.body.appendChild( renderer.domElement );
 
 	window.addEventListener( 'resize', onWindowResize, false );
-  document.addEventListener('click', onDocumentMouseMove, false);
-  // renderer.render(scene, camera);
 }
 
 function drawBordersOfCube()
@@ -48,16 +46,6 @@ function drawBordersOfCube()
   createLine(x1, x2, y1, y2, z1, z2, new THREE.Color("rgb(224, 188, 77)"), isNewLine ? -1 : 1);
   x1 = x2 = xStart, y1 = yStart, y2 = yEnd, z1 = z2 = zStart; // height
   createLine(x1, x2, y1, y2, z1, z2, new THREE.Color("rgb(45, 178, 196)"), isNewLine ? -1 : 2);
-
-  // x1 = x2 = xEnd, y1 = y2 = yStart, z1 = zStart, z2 = zEnd; // depth2
-  // createLine(x1, x2, y1, y2, z1, z2, new THREE.Color("rgb(77, 207, 224)"));
-  // x1 = xStart, x2 = xEnd, y1 = y2 = yEnd, z1 = z2 = zStart; // wdith2
-  // createLine(x1, x2, y1, y2, z1, z2, new THREE.Color("rgb(135, 77, 224)"));
-  // x1 = x2 = xEnd, y1 = yStart, y2 = yEnd, z1 = z2 = zStart; // height2
-  // createLine(x1, x2, y1, y2, z1, z2, new THREE.Color("rgb(224, 77, 135)"));
-
-  // x1 = xStart, x2 = xEnd, y1 = y2 = yStart, z1 = z2 = zEnd; // wdith3
-  // createLine(x1, x2, y1, y2, z1, z2, new THREE.Color("rgb(77, 224, 123)"));
 }
 
 function createLine(x1, x2, y1, y2, z1, z2, inputColor, offset)
@@ -87,7 +75,7 @@ function createLine(x1, x2, y1, y2, z1, z2, inputColor, offset)
     tempMesh.translateZ(-t);
     tempMesh.rotateY((-35 * Math.PI)/180);
     tempMesh.translateZ(t);
-    
+
     mesh.push(tempMesh);
   }
   else
@@ -124,27 +112,7 @@ function onWindowResize() {
 	renderer.setSize( window.innerWidth, window.innerHeight );
 }
 
-function onDocumentMouseMove( event ) {
-  event.preventDefault();
-  mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-  mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
-  console.log("x" + mouse.x);
-  console.log("y" + mouse.y);
-  // var vertices = geometry.vertices;
-	// vertices.push(
-	// 	new THREE.Vector3(mouse.x * 62 * window.innerWidth/window.innerHeight, mouse.y * 62, 0));
-  //
-	// geometry = new THREE.Geometry();
-	// geometry.vertices = vertices;
-  //
-	// scene.remove( mesh );
-  // line = new THREE.MeshLine();
-  // line.setGeometry( geometry );
-  // mesh = new THREE.Mesh( line.geometry, material ); // this syntax could definitely be improved!
-  // scene.add( mesh );
-}
-
-var waitTime = 0, shouldWaiting = false;
+var shouldWaiting = false;
 var label, length;
 
 function draw() {
@@ -153,57 +121,41 @@ function draw() {
     var tempMeshLength = mesh.length;
     for(i = 0; i < tempMeshLength; i++)
     {
-      // renderer.deallocateObject(mesh[i]);
-      // renderer.deallocateTexture(textures[i]);
       scene.remove(mesh[i]);
-      // mesh[i].material.map.dispose();
-      // mesh[i].geometry.dispose();
-      // mesh[i].material.dispose();
-      //
-      // geos[i].dispose();
-      // // materials[i].map.dispose();
-      // materials[i].dispose();
-      // mesh[i] = undefined;//or
-      // delete(mesh[i]);
-      // lines[i] = undefined;//or
-      // delete(lines[i]);
-      // geos[i] = undefined;//or
-      // delete(geos[i]);
-      // materials[i] = undefined;//or
-      // delete(materials[i]);
     }
-    // lines = [], materials = [], geos = [], mesh = [];
 
     drawingWidth += widthIncreaseDirection;
-    if(drawingWidth >= 1)
-    {
-      widthIncreaseDirection = -0.01;
-      shouldWaiting = true;
-    }
-    else if(drawingWidth <= 0)
+    if(drawingWidth <= 0)
     {
       widthIncreaseDirection = 0.01;
-      turn = ((turn + 1) % tempMeshLength);
-      updateWidthInfo();
+      drawingWidth = 0.01;
+      // turn = ((turn + 1) % tempMeshLength);
+      hideAllInfoes();
     }
-    drawBordersOfCube();
-    var lengthString = parseFloat(Math.round((length*drawingWidth) * 100) / 100).toFixed(2);
-    label.html(lengthString + " cm");
-    // mesh[turn].updateMatrixWorld();
-    // var vector = mesh[turn].geometry.vertices[1].clone();
-    // vector.applyMatrix4( mesh[turn].matrixWorld );
-    // console.log("left", position.x + "px");
-    // console.log("top", position.y + "px");
+    else
+    {
+      if(drawingWidth >= 1)
+      {
+        widthIncreaseDirection = -0.01;
+        shouldWaiting = true;
+      }
+      updateWidthInfo()
+      drawBordersOfCube();
+      var lengthString = parseFloat(Math.round((length*drawingWidth) * 100) / 100).toFixed(2);
+      label.html(lengthString + " cm");
+      requestAnimationFrame(loopAnimate);
+    }
     renderer.render(scene, camera);
   }
   else
   {
-    waitTime++;
-    if(waitTime >= 100)
-    {
-      waitTime = 0;
-      shouldWaiting = false;
-    }
+    setTimeout(
+      function()
+      {
+        shouldWaiting = false;
+        requestAnimationFrame(loopAnimate);
+      }, 10000
+    );
   }
 }
 
@@ -212,9 +164,7 @@ function updateWidthInfo()
   if(label != null) label.hide();
   else
   {
-    $(".info").each(
-      function() {$(this).hide();}
-    );
+    hideAllInfoes();
   }
   if(turn == 0)
   {
@@ -239,99 +189,46 @@ function loopAnimate()
     setTimeout(
       function()
       {
-        requestAnimationFrame(loopAnimate);
         draw();
       }, 1000 / 60
     );
 }
 
-
-
-
-
-
-
-
-
-
+function hideAllInfoes()
+{
+  $(".info").each(
+    function() {$(this).hide();}
+  );
+}
 
 
 $(function()
 {
-  // $("#bc").draggable(
-  //   {
-  //     drag: function(event)
-  //     {
-  //       $("#homeCanves").css("top", event.pageY);
-  //     }
-  //   }
-  // );
-
   init();
-  loopAnimate();
-  updateWidthInfo();
+  // loopAnimate();
+  // updateWidthInfo();
+  hideAllInfoes();
 
-  $(".pos").mousedown(function (event) {dragging = true;});
-  $("#bc").mousemove(function (event) {if(dragging) dragFunc(event)});
-  $("#bc").mouseup(function (event) {dragging = false;});
-
-  $("#shape").click(
-    function(event)
+  $("#widthSelector").click(
+    function ()
     {
-      if(!isShown)
-      {
-        isShown = true;
-        var width = $(".pos").width(), height = $(".pos").height();
-        var wYPos =  $(".pos").position().top - 25, wXPos = $(".pos").position().left + width/2;
-        var hYPos =  $(".pos").position().top + height/2, hXPos = $(".pos").position().left + width;
-        var elem1 = "<button id=\"widthIndicator\" class=\"btn\">aaa</button>";
-        var elem2 = "<button id=\"heightIndicator\" class=\"btn\">aaa</button>";
-        $("body").append(elem1, elem2);
-        $("#widthIndicator").css(
-          {
-            top: wYPos,
-            left: wXPos,
-          }
-        );
-
-        $("#heightIndicator").css(
-          {
-            top: hYPos,
-            left: hXPos,
-          }
-        );
-      }
-      else
-      {
-        isShown = false;
-        $("#heightIndicator").remove();
-        $("#widthIndicator").remove();
-      }
-
+      turn = 1;
+      loopAnimate();
     }
   );
-  ShineDot();
+  $("#heightSelector").click(
+    function ()
+    {
+      turn = 2;
+      loopAnimate();
+    }
+  );
+  $("#depthSelector").click(
+    function ()
+    {
+      turn = 0;
+      loopAnimate();
+    }
+  );
 }
 );
-
-function ShineDot()
-{
-  $(".pos")
-        // .delay(1000)
-        .fadeIn(700)
-        // .delay(1000)
-        .fadeOut(700, function() {ShineDot()});
-}
-
-function dragFunc(event)
-{
-  console.log("drag");
-  $(".pos").stop();
-  $(".pos").css("opacity", 1);
-  var startPoint = $(".pos").position();
-  var endPoint = (event.pageX > startPoint.left ? event.pageX - startPoint.left : 100);
-  console.log("start: " + startPoint.left);
-  console.log("endPoint: " + endPoint);
-  $(".pos").css("width", endPoint + 'px');
-  $(".pos").css("left", "50%");
-}
