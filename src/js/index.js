@@ -15,12 +15,13 @@ $(document).ready(
 
       var pos = $("#goal").position();
       var w = $("#goal").width(), h = $("#goal").height();
+      var threshold = 50;
       // console.log("posX: " + pos.left + "\tposY: " + pos.top + "\tw: " + w + "\th:" + h);
       // console.log("eX: " + event.pageX + "\teY: " + event.pageY);
-      if(event.pageX >= pos.left - 20 && event.pageX <=  pos.left + w + 20)
+      if(event.pageX >= pos.left - threshold && event.pageX <=  pos.left + w + threshold)
       {
         // console.log("w ok");
-        if(event.pageY >= pos.top - 20 && event.pageY <=  pos.top + h + 20)
+        if(event.pageY >= pos.top - threshold && event.pageY <=  pos.top + h + threshold)
         {
           // console.log("h ok colliding");
           colisionDetected = true;

@@ -1,13 +1,14 @@
-var isShown = false;
-var dragging = false;
+var clicked = dragging = false;
 var drawingWidth = 0.01;
 var widthIncreaseDirection = 0.01;
 var turn = 0;
-var animReqID = waitTimer = -1;
+var animReqID = animTimer = waitTimer = -1;
+var circleInitialRadius = 40;
 
 
 var camera, scene, renderer, mesh, geos, lines, materials;
-var width = 34.4, height = 30, depth = 21, zOffset = 12;
+var width = 34.4, height = 30, depth = 21, zOffset = 16;
+var rotation = -(90 - Math.acos((25.5-4)/width)*180/Math.PI);
 var screenWidth = 94, screenHeight = 53;
 var mouse = new THREE.Vector2();
 
@@ -30,7 +31,7 @@ function init() {
   renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
 	renderer.setPixelRatio( window.devicePixelRatio );
 	renderer.setSize( window.innerWidth, window.innerHeight );
-	document.body.appendChild( renderer.domElement );
+	$("body").prepend( renderer.domElement );
 
 	window.addEventListener( 'resize', onWindowResize, false );
 }
@@ -74,7 +75,7 @@ function createLine(x1, x2, y1, y2, z1, z2, inputColor, offset)
     tempMesh = new THREE.Mesh(line.geometry, material);
     var t = zOffset+depth/2;
     tempMesh.translateZ(-t);
-    tempMesh.rotateY((-35 * Math.PI)/180);
+    tempMesh.rotateY((rotation * Math.PI)/180);
     tempMesh.translateZ(t);
 
     mesh.push(tempMesh);
@@ -188,12 +189,12 @@ function updateWidthInfo()
 
 function loopAnimate()
 {
-    // animationTimer = setTimeout(
-    //   function()
-    //   {
+    animTimer = setTimeout(
+      function()
+      {
         draw();
-    //   }, 1000 / 60
-    // );
+      }, 1000 / 60
+    );
 }
 
 function hideAllInfoes()
@@ -203,23 +204,28 @@ function hideAllInfoes()
   );
 }
 
+function cancelAllAnimations()
+{
+  shouldWaiting = false;
+  drawingWidth = 0.01;
+  widthIncreaseDirection = 0.01;
+  clearTimeout(waitTimer);
+  clearTimeout(animTimer);
+  cancelAnimationFrame(animReqID);
+}
 
 $(function()
 {
+  hideAllInfoes();
   init();
   // loopAnimate();
   // updateWidthInfo();
-  hideAllInfoes();
 
   $("#widthSelector").click(
     function ()
     {
       turn = 1;
-      shouldWaiting = false;
-      drawingWidth = 0.01;
-      widthIncreaseDirection = 0.01;
-      clearTimeout(waitTimer);
-      cancelAnimationFrame(animReqID);
+      cancelAllAnimations();
       loopAnimate();
     }
   );
@@ -231,6 +237,7 @@ $(function()
       drawingWidth = 0.01;
       widthIncreaseDirection = 0.01;
       clearTimeout(waitTimer);
+      clearTimeout(animTimer);
       cancelAnimationFrame(animReqID);
       loopAnimate();
     }
@@ -243,8 +250,86 @@ $(function()
       drawingWidth = 0.01;
       widthIncreaseDirection = 0.01;
       clearTimeout(waitTimer);
+      clearTimeout(animTimer);
       cancelAnimationFrame(animReqID);
       loopAnimate();
+    }
+  );
+
+  $("#backBtn").mousedown(
+    function ()
+    {
+      console.log("mouse down");
+      clicked = true;
+    }
+  );
+  $("body").mousemove(
+    function (event)
+    {
+      if(clicked == true)
+      {
+        if(clicked == true && dragging == false)
+        {
+          dragging = true;
+          var transparentor = document.createElement("div");
+          transparentor.setAttribute("id", "transparator");
+          transparentor.setAttribute("class", "tranparentPanel");
+          document.body.appendChild(transparentor);
+        }
+        var radius = (event.pageY > (window.innerHeight - circleInitialRadius) ? circleInitialRadius : (window.innerHeight - event.pageY));
+        $("#transparator").css("opacity", (1 - event.pageY / window.innerHeight));
+        $("#backBtn").css(
+          {
+            r: radius
+          }
+        );
+      }
+    }
+  );
+  $("body").mouseup(
+    function(event)
+    {
+      if(dragging)
+      {
+        if(event.pageY < window.innerHeight/2)
+        {
+          $("#transparator").animate(
+            {
+              opacity: 1
+            }, 400, function(){}
+          );
+          $("#backBtn").animate(
+            {
+              r: Math.sqrt(Math.pow(window.innerWidth, 2) + Math.pow(window.innerHeight, 2))
+            }, 500,
+            function()
+            {
+              document.body.removeChild(document.getElementById("transparator"));
+              cancelAllAnimations();
+              window.location.replace(`../html/index.html`);
+            }
+          );
+        }
+        else
+        {
+          $("#transparator").animate(
+            {
+              opacity: 0
+            }, 200, function(){}
+          );
+          $("#backBtn").animate(
+            {
+              r: circleInitialRadius
+            }, 300,
+            function()
+            {
+              document.body.removeChild(document.getElementById("transparator"));
+            }
+          );
+
+        }
+      }
+      dragging = clicked = false;
     }
   );
 }

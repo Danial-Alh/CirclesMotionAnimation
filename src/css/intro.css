@@ -7,7 +7,7 @@
   position: fixed;
   background-color: transparent;
   z-index: 2;
-  
+  font: italic bold 20px sans-serif;
 }
 
 #widthInfo
@@ -19,13 +19,13 @@
 #heightInfo
 {
   top: 60%;
-  left: 60%;
+  left: 64%;
 }
 
 #depthInfo
 {
   top: 40%;
-  left: 70%;
+  left: 60%;
 }
 
 #infoSelector
@@ -43,6 +43,8 @@
   width: inherit;
   height: 50px;
   left: 10%;
+  font: bold 20px "B Nazanin";
+  background-color: rgb(82, 85, 83)
 }
 
 #widthSelector
@@ -60,13 +62,45 @@
   top: calc(var(--topButton) + 20%);
 }
 
-#homeCanves
+#backHolder
 {
   position: fixed;
-  left: 0px;
+  left: 50%;
   top: 100%;
-  width:100%;
-  height:100%;
-  background-color: #000000;
-  z-index: 3
+  width: 10%;
+  height: 10%;
+  transform: translate(-50%, -50%);
+  z-index: 4;
+  background-color: transparent;
+  overflow: visible;
+}
+
+#backBtn
+{
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  /*transform: translate(-50%, -50%);*/
+  width:inherit;
+  height:inherit;
+  /*background-color: #000000;*/
+  cx: 50%;
+  cy: 50%;
+  r: 40;
+  stroke: black;
+  stroke-width: 3;
+  fill: black;
+  color: rgb(231, 237, 234)
+}
+
+.tranparentPanel
+{
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  left: 0px;
+  top: 0px;
+  opacity: 0;
+  background-color: rgb(0, 0, 0);
+  z-index: 3;
 }
