@@ -5,7 +5,7 @@ var widthIncreaseDirection = 0.01;
 var turn = 0;
 
 
-var camera, scene, renderer, mesh, material;
+var camera, scene, renderer, mesh, geos, lines, materials;
 var width = 34.4, height = 30, depth = 21, zOffset = 12;
 var screenWidth = 94, screenHeight = 53;
 var mouse = new THREE.Vector2();
@@ -15,6 +15,7 @@ var zStart, zEnd,
     yStart, yEnd;
 
 function init() {
+  mesh = [], geos = [], lines = [], materials = [];
   $("body").css("overflow", "hidden");
   var z = 60;
   camera = new THREE.PerspectiveCamera( 2*Math.atan2(screenHeight/2, z)*(180/Math.PI), window.innerWidth / window.innerHeight, 1, 1000 );
@@ -40,13 +41,13 @@ function drawBordersOfCube()
   zStart = -zOffset, zEnd = zStart-depth*(turn == 0 ? drawingWidth : 0),
   xStart = width/2, xEnd = xStart-width*(turn == 1 ? drawingWidth : 0),
   yStart = (height - screenHeight/2), yEnd = yStart-height*(turn == 2 ? drawingWidth : 0);
-  mesh = [];
+  var isNewLine = (mesh.length == 0 ? true : false);
   var x1 = x2 = xStart, y1 = y2 = yStart, z1 = zStart, z2 = zEnd; // depth
-  createLine(x1, x2, y1, y2, z1, z2, new THREE.Color("rgb(135, 77, 224)"));
+  createLine(x1, x2, y1, y2, z1, z2, new THREE.Color("rgb(135, 77, 224)"), isNewLine ? -1 : 0);
   x1 = xStart, x2 = xEnd, y1 = y2 = yStart, z1 = z2 = zStart; // width
-  createLine(x1, x2, y1, y2, z1, z2, new THREE.Color("rgb(224, 188, 77)"));
+  createLine(x1, x2, y1, y2, z1, z2, new THREE.Color("rgb(224, 188, 77)"), isNewLine ? -1 : 1);
   x1 = x2 = xStart, y1 = yStart, y2 = yEnd, z1 = z2 = zStart; // height
-  createLine(x1, x2, y1, y2, z1, z2, new THREE.Color("rgb(45, 178, 196)"));
+  createLine(x1, x2, y1, y2, z1, z2, new THREE.Color("rgb(45, 178, 196)"), isNewLine ? -1 : 2);
 
   // x1 = x2 = xEnd, y1 = y2 = yStart, z1 = zStart, z2 = zEnd; // depth2
   // createLine(x1, x2, y1, y2, z1, z2, new THREE.Color("rgb(77, 207, 224)"));
@@ -59,29 +60,62 @@ function drawBordersOfCube()
   // createLine(x1, x2, y1, y2, z1, z2, new THREE.Color("rgb(77, 224, 123)"));
 }
 
-function createLine(x1, x2, y1, y2, z1, z2, inputColor)
+function createLine(x1, x2, y1, y2, z1, z2, inputColor, offset)
 {
-  var geometry = new THREE.Geometry();
-  geometry.vertices.push(
-      new THREE.Vector3(x1, y1, z1),
-      new THREE.Vector3(x2, y2, z2)
+  var line, geometry, material, tempMesh;
+  if(offset == -1)
+  {
+    geometry = new THREE.Geometry();
+    geometry.vertices.push(
+        new THREE.Vector3(x1, y1, z1),
+        new THREE.Vector3(x2, y2, z2)
+      );
+    geos.push(geometry);
+    line = new THREE.MeshLine();
+    line.setGeometry( geometry );
+    lines.push(line);
+    material = new THREE.MeshLineMaterial(
+      {
+        color: inputColor,
+        sizeAttenuation: true,
+        lineWidth: 1
+      }
     );
-  var line = new THREE.MeshLine();
-  line.setGeometry( geometry );
-  material = new THREE.MeshLineMaterial(
-    {
-      color: inputColor,
-      sizeAttenuation: true,
-      lineWidth: 1
-    }
-  );
-  var t = zOffset+depth/2;
-  var tempMesh = new THREE.Mesh(line.geometry, material);
-  tempMesh.translateZ(-t);
-  tempMesh.rotateY((-35 * Math.PI)/180);
-  tempMesh.translateZ(t);
-  mesh.push(tempMesh);
-  scene.add( mesh[mesh.length-1] );
+    materials.push(material);
+    tempMesh = new THREE.Mesh(line.geometry, material);
+    var t = zOffset+depth/2;
+    tempMesh.translateZ(-t);
+    tempMesh.rotateY((-35 * Math.PI)/180);
+    tempMesh.translateZ(t);
+    
+    mesh.push(tempMesh);
+  }
+  else
+  {
+    geometry = geos[offset];
+    geometry.vertices[0].x = x1;
+    geometry.vertices[0].y = y1;
+    geometry.vertices[0].z = z1;
+
+    geometry.vertices[1].x = x2;
+    geometry.vertices[1].y = y2;
+    geometry.vertices[1].z = z2;
+    geometry.verticesNeedUpdate = true;
+    geometry.elementsNeedUpdate = true;
+    geometry.uvsNeedUpdate = true;
+    geometry.normalsNeedUpdate = true;
+    geometry.lineDistancesNeedUpdate = true;
+    geometry.lineDistances = true;
+
+    line = lines[offset];
+    line.setGeometry( geometry );
+
+    material = materials[offset];
+    tempMesh = mesh[offset];
+    tempMesh.geometry = line.geometry;
+  }
+
+  scene.add( tempMesh );
 }
 
 function onWindowResize() {
@@ -117,9 +151,29 @@ function draw() {
   if(!shouldWaiting)
   {
     var tempMeshLength = mesh.length;
-    for(i = 0; i < mesh.length; i++)
+    for(i = 0; i < tempMeshLength; i++)
+    {
+      // renderer.deallocateObject(mesh[i]);
+      // renderer.deallocateTexture(textures[i]);
       scene.remove(mesh[i]);
-    mesh = [];
+      // mesh[i].material.map.dispose();
+      // mesh[i].geometry.dispose();
+      // mesh[i].material.dispose();
+      //
+      // geos[i].dispose();
+      // // materials[i].map.dispose();
+      // materials[i].dispose();
+      // mesh[i] = undefined;//or
+      // delete(mesh[i]);
+      // lines[i] = undefined;//or
+      // delete(lines[i]);
+      // geos[i] = undefined;//or
+      // delete(geos[i]);
+      // materials[i] = undefined;//or
+      // delete(materials[i]);
+    }
+    // lines = [], materials = [], geos = [], mesh = [];
+
     drawingWidth += widthIncreaseDirection;
     if(drawingWidth >= 1)
     {
@@ -172,7 +226,7 @@ function updateWidthInfo()
     label = $("#widthInfo");
     length = width;
   }
-  else
+  else if(turn == 2)
   {
     label = $("#heightInfo");
     length = height;
@@ -182,13 +236,13 @@ function updateWidthInfo()
 
 function loopAnimate()
 {
-    // setTimeout(
-    //   function()
-    //   {
-    requestAnimationFrame(loopAnimate);
-    draw();
-      // }, 1000 / 60
-    // );
+    setTimeout(
+      function()
+      {
+        requestAnimationFrame(loopAnimate);
+        draw();
+      }, 1000 / 60
+    );
 }
 
 
@@ -214,8 +268,8 @@ $(function()
   // );
 
   init();
-  updateWidthInfo();
   loopAnimate();
+  updateWidthInfo();
 
   $(".pos").mousedown(function (event) {dragging = true;});
   $("#bc").mousemove(function (event) {if(dragging) dragFunc(event)});
