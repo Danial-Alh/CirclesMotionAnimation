@@ -3,6 +3,7 @@ var dragging = false;
 var drawingWidth = 0.01;
 var widthIncreaseDirection = 0.01;
 var turn = 0;
+var animReqID = waitTimer = -1;
 
 
 var camera, scene, renderer, mesh, geos, lines, materials;
@@ -139,22 +140,23 @@ function draw() {
         widthIncreaseDirection = -0.01;
         shouldWaiting = true;
       }
+
       updateWidthInfo()
       drawBordersOfCube();
       var lengthString = parseFloat(Math.round((length*drawingWidth) * 100) / 100).toFixed(2);
       label.html(lengthString + " cm");
-      requestAnimationFrame(loopAnimate);
+      animReqID = requestAnimationFrame(loopAnimate);
     }
     renderer.render(scene, camera);
   }
   else
   {
-    setTimeout(
+    waitTimer = setTimeout(
       function()
       {
         shouldWaiting = false;
-        requestAnimationFrame(loopAnimate);
-      }, 10000
+        animReqID = requestAnimationFrame(loopAnimate);
+      }, 2000
     );
   }
 }
@@ -186,12 +188,12 @@ function updateWidthInfo()
 
 function loopAnimate()
 {
-    setTimeout(
-      function()
-      {
+    // animationTimer = setTimeout(
+    //   function()
+    //   {
         draw();
-      }, 1000 / 60
-    );
+    //   }, 1000 / 60
+    // );
 }
 
 function hideAllInfoes()
@@ -213,6 +215,11 @@ $(function()
     function ()
     {
       turn = 1;
+      shouldWaiting = false;
+      drawingWidth = 0.01;
+      widthIncreaseDirection = 0.01;
+      clearTimeout(waitTimer);
+      cancelAnimationFrame(animReqID);
       loopAnimate();
     }
   );
@@ -220,6 +227,11 @@ $(function()
     function ()
     {
       turn = 2;
+      shouldWaiting = false;
+      drawingWidth = 0.01;
+      widthIncreaseDirection = 0.01;
+      clearTimeout(waitTimer);
+      cancelAnimationFrame(animReqID);
       loopAnimate();
     }
   );
@@ -227,6 +239,11 @@ $(function()
     function ()
     {
       turn = 0;
+      shouldWaiting = false;
+      drawingWidth = 0.01;
+      widthIncreaseDirection = 0.01;
+      clearTimeout(waitTimer);
+      cancelAnimationFrame(animReqID);
       loopAnimate();
     }
   );
