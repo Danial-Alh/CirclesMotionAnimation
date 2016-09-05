@@ -189,12 +189,12 @@ function updateWidthInfo()
 
 function loopAnimate()
 {
-    animTimer = setTimeout(
-      function()
-      {
+    // animTimer = setTimeout(
+    //   function()
+    //   {
         draw();
-      }, 1000 / 60
-    );
+    //   }, 1000 / 60
+    // );
 }
 
 function hideAllInfoes()

@@ -2,14 +2,14 @@
   fill:rgb(255, 255, 255);
   stroke-width:3;
   stroke:rgb(0,0,0);
-  width: 100px;
-  height: 100px;
+  width: inherit;
+  height: inherit;
 }
 
 .pos {
   position:fixed;
-  width:100px;
-  height:100px;
+  width:200px;
+  height:200px;
   left: 50%;
   top:50%;
   transform: translate(-50%, -50%);
