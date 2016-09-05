@@ -1,9 +1,9 @@
 var clicked = dragging = false;
 var drawingWidth = 0.01;
 var widthIncreaseDirection = 0.01;
-var turn = 0;
+var turns = [];
 var animReqID = animTimer = waitTimer = -1;
-var circleInitialRadius = 40;
+var circleInitialRadius = 50;
 
 
 var camera, scene, renderer, mesh, geos, lines, materials;
@@ -15,6 +15,8 @@ var mouse = new THREE.Vector2();
 var zStart, zEnd,
     xStart, xEnd,
     yStart, yEnd;
+var lock = [-1];
+
 
 function init() {
   mesh = [], geos = [], lines = [], materials = [];
@@ -29,8 +31,9 @@ function init() {
 
   drawBordersOfCube();
   renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
-	renderer.setPixelRatio( window.devicePixelRatio );
+	renderer.setPixelRatio( 2 );
 	renderer.setSize( window.innerWidth, window.innerHeight );
+
 	$("body").prepend( renderer.domElement );
 
 	window.addEventListener( 'resize', onWindowResize, false );
@@ -38,6 +41,7 @@ function init() {
 
 function drawBordersOfCube()
 {
+  var turn = turns[0];
   zStart = -zOffset, zEnd = zStart-depth*(turn == 0 ? drawingWidth : 0),
   xStart = width/2, xEnd = xStart-width*(turn == 1 ? drawingWidth : 0),
   yStart = (height - screenHeight/2), yEnd = yStart-height*(turn == 2 ? drawingWidth : 0);
@@ -127,16 +131,25 @@ function draw() {
     }
 
     drawingWidth += widthIncreaseDirection;
-    if(drawingWidth <= 0)
+    if(drawingWidth <= 0 && turns.length <= 1)
     {
       widthIncreaseDirection = 0.01;
       drawingWidth = 0.01;
+      turns = [];
       // turn = ((turn + 1) % tempMeshLength);
       hideAllInfoes();
+      startBackBtnAnimation(1);
     }
     else
     {
-      if(drawingWidth >= 1)
+      if(drawingWidth <= 0)
+      {
+        widthIncreaseDirection = 0.01;
+        drawingWidth = 0.01;
+        turns.shift();
+        // turn = ((turn + 1) % tempMeshLength);
+      }
+      else if(drawingWidth >= 1)
       {
         widthIncreaseDirection = -0.01;
         shouldWaiting = true;
@@ -149,6 +162,7 @@ function draw() {
       animReqID = requestAnimationFrame(loopAnimate);
     }
     renderer.render(scene, camera);
+    // composer.render();
   }
   else
   {
@@ -169,17 +183,17 @@ function updateWidthInfo()
   {
     hideAllInfoes();
   }
-  if(turn == 0)
+  if(turns[0] == 0)
   {
     label = $("#depthInfo");
     length = depth;
   }
-  else if(turn == 1)
+  else if(turns[0] == 1)
   {
     label = $("#widthInfo");
     length = width;
   }
-  else if(turn == 2)
+  else if(turns[0] == 2)
   {
     label = $("#heightInfo");
     length = height;
@@ -204,54 +218,126 @@ function hideAllInfoes()
   );
 }
 
-function cancelAllAnimations()
+function cancelAllAnimations(key)
 {
+  stopBackBtnAnimation(key);
   shouldWaiting = false;
   drawingWidth = 0.01;
   widthIncreaseDirection = 0.01;
   clearTimeout(waitTimer);
   clearTimeout(animTimer);
   cancelAnimationFrame(animReqID);
+  turns = [];
 }
+
+function stopBackBtnAnimation(key)
+{
+  if(lock.indexOf(key) == -1)
+  {
+    lock.push(key);
+    shouldStopBackBtnAnimation = true;
+    $("#backBtn").stop(true, false);
+  }
+}
+
+function returnBackBtnToInitialState()
+{
+  // if(lock.indexOf(key) == -1)
+  {
+    $("#backBtn").animate(
+      {
+        r: circleInitialRadius,
+        fill: "black"
+      }, 200
+    );
+  }
+}
+
+function startBackBtnAnimation(key)
+{
+  var i = lock.indexOf(key);
+  if(i != -1) {
+  	lock.splice(i, 1);
+  }
+  if(lock.length == 0)
+  {
+    shouldStopBackBtnAnimation = false;
+    animateBackBtn();
+  }
+}
+
+
+function animateBackBtn()
+{
+  if(shouldStopBackBtnAnimation)
+    return;
+  var nextColor = "rgb("+ Math.floor(Math.random()*255) + ", " + Math.floor(Math.random()*255) + ", " + Math.floor(Math.random()*255) + ")";
+  $("#backBtn").animate(
+    {
+      r: circleInitialRadius+10,
+      fill: nextColor,
+      stroke: nextColor
+    }, 400,
+    function ()
+    {
+      $("#backBtn").animate(
+        {
+          r: circleInitialRadius,
+          fill: "black"
+        }, 1000,
+        function () {
+          setTimeout(
+            function ()
+            {
+              animateBackBtn();
+            }, 2000
+          )
+        }
+      )
+    }
+  )
+}
+
 
 $(function()
 {
   hideAllInfoes();
   init();
-  // loopAnimate();
-  // updateWidthInfo();
 
   $("#widthSelector").click(
     function ()
     {
-      turn = 1;
-      cancelAllAnimations();
+      cancelAllAnimations(1);
+      returnBackBtnToInitialState();
+      turns.push(1);
       loopAnimate();
     }
   );
   $("#heightSelector").click(
     function ()
     {
-      turn = 2;
-      shouldWaiting = false;
-      drawingWidth = 0.01;
-      widthIncreaseDirection = 0.01;
-      clearTimeout(waitTimer);
-      clearTimeout(animTimer);
-      cancelAnimationFrame(animReqID);
+      cancelAllAnimations(1);
+      returnBackBtnToInitialState();
+      turns.push(2);
       loopAnimate();
     }
   );
   $("#depthSelector").click(
     function ()
     {
-      turn = 0;
-      shouldWaiting = false;
-      drawingWidth = 0.01;
-      widthIncreaseDirection = 0.01;
-      clearTimeout(waitTimer);
-      clearTimeout(animTimer);
-      cancelAnimationFrame(animReqID);
+      cancelAllAnimations(1);
+      returnBackBtnToInitialState();
+      turns.push(0);
+      loopAnimate();
+    }
+  );
+  $("#automaticSelector").click(
+    function ()
+    {
+      cancelAllAnimations(1);
+      returnBackBtnToInitialState();
+      for( i = 0; i < 3; i++)
+        turns.push(i);
       loopAnimate();
     }
   );
@@ -261,6 +347,7 @@ $(function()
     {
       console.log("mouse down");
       clicked = true;
+      stopBackBtnAnimation(2);
     }
   );
   $("body").mousemove(
@@ -305,7 +392,7 @@ $(function()
             function()
             {
               document.body.removeChild(document.getElementById("transparator"));
-              cancelAllAnimations();
+              cancelAllAnimations(-1);
               window.location.replace(`../html/index.html`);
             }
           );
@@ -324,6 +411,7 @@ $(function()
             function()
             {
               document.body.removeChild(document.getElementById("transparator"));
+              startBackBtnAnimation(2);
             }
           );
 
@@ -332,5 +420,8 @@ $(function()
       dragging = clicked = false;
     }
   );
+
+  jQuery.Color.hook( "fill stroke" );
+  startBackBtnAnimation(-1);
 }
 );
